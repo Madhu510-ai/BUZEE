@@ -1,0 +1,2307 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b8c5f7c2-d1fa-4921-ae17-bc8fe93ebef4",
+      "name": "Telegram Trigger",
+      "webhookId": "a52b5a3d-fa79-4ab7-a99f-3ce8b26036d8",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "ADD_STOCK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8792acf5-1f79-4f00-bd03-3cdd39f58795"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADD"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6a32b76c-9c1b-4c6d-916c-eab239ec7716",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "REMOVE_STOCK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REMOVE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3412f4e1-7cf4-4d8e-b46a-be82910ccaac",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "STOCK_NAME",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "STOCK_NAME"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f7ece9ae-b444-4605-9c3f-a484ebf25abb",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "GREETING",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GREET"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d5dbe628-0377-4d07-80b3-7a8c56b8ad67",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "PORTFOLIO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PORTFOLIO"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        16
+      ],
+      "id": "4b12dced-ef33-4aa7-9ca2-d749af5addb6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('extract').item.json.chat_id }}",
+        "text": "=Hello 👋\n\nI’m **Buziee**, the chatbot from **BUZee**. I’m here to help you track important news that may impact the stocks you’re interested in 📈\n\nYou can manage your stock watchlist using the commands below:\n\n/add → Add a stock to your watchlist\n/remove → Remove a stock from your watchlist\n/portfolio → View the stocks currently in your portfolio\n\nOnce a stock is added, I’ll send you important news and updates that could affect its price.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        160
+      ],
+      "id": "f4399dc6-e0ba-48db-9681-b6ddc60a4be6",
+      "name": "greeting",
+      "webhookId": "e76cfcbf-b2ab-44ed-93cb-c4b0b5f9dedf",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output[0].content[0].text;\n\n// Remove markdown code blocks if present\nconst cleaned = raw.replace(/```json|```/g, '').trim();\n\nlet parsedData;\n\ntry {\n  parsedData = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(`Failed to parse JSON: ${error.message}\\nRaw output: ${raw}`);\n}\n\nreturn [{ json: parsedData }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        320
+      ],
+      "id": "24e9622d-b087-415a-889b-ca4b248949bd",
+      "name": "intent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json.message;\n\nreturn [{\n  json: {\n    chat_id: msg.chat.id,\n    text: msg.text,\n    username: msg.from.username || msg.from.first_name\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "ea45c4c3-2da7-484e-83c7-ea4aca5d7de1",
+      "name": "extract"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1784194858,
+          "mode": "list",
+          "cachedResultName": "Portfolio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=1784194858"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('extract').item.json.chat_id }}",
+            "stock": "={{ $('extract').item.json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stock",
+              "displayName": "stock",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2576,
+        -880
+      ],
+      "id": "3c326c9c-b7d6-45b0-91fe-ab38bfb0f0b6",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f5ad503f-2e9e-404c-b03b-92c5e2f432f5",
+              "leftValue": "={{ $json.allowAdd }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "e0de6ce1-5429-46ee-b2c7-9777cf6b001c",
+              "leftValue": "={{ $json.allowAdd }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2320,
+        -768
+      ],
+      "id": "3f09020a-df7b-4b8b-968c-4bdbb20e0abc",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1784194858,
+          "mode": "list",
+          "cachedResultName": "Portfolio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=1784194858"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "chat_id",
+              "lookupValue": "={{ $('extract').item.json.chat_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1712,
+        -240
+      ],
+      "id": "009d95f8-e749-4ba7-9090-78be35d3f064",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1784194858,
+          "mode": "list",
+          "cachedResultName": "Portfolio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=1784194858"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        352
+      ],
+      "id": "d52ce34b-5b31-4862-816b-dbdfb2686e47",
+      "name": "Portfolio Extract",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "chat_id",
+              "lookupValue": "={{ $('extract').item.json.chat_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1008,
+        32
+      ],
+      "id": "52b7db20-ced9-40aa-a3bc-4e7abc9e6042",
+      "name": "Users Extract",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1552,
+        448
+      ],
+      "id": "066e10b0-d5e3-4531-ad5a-3ce0f56e40c6",
+      "name": "Portfolio Reply",
+      "webhookId": "93120cd2-cfdb-4892-9d86-cbc16a99c2b2",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $node[\"Telegram Trigger\"].json.message.chat.id;\n\n// get all rows\nconst rows = $input.all();\n\n// filter rows belonging to this user\nconst userRows = rows.filter(r => r.json.chat_id == chatId);\n\n// get last appended row for that user\nconst lastRow = userRows[userRows.length - 1];\n\nreturn [{\n  json: {\n    state: lastRow.json.state,\n    row_number: lastRow.json.row_number,\n    chat_id: lastRow.json.chat_id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        -160
+      ],
+      "id": "341b86fa-761e-48fb-bdf9-48f6b7d33808",
+      "name": "State Code"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "awaiting_add_stock",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "46481bf1-211c-47b7-9ac2-aef08c23089d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "add"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "72df2430-5db6-490f-ab66-78e53cabab23",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "awaiting_remove_stock",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "remove"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1392,
+        -272
+      ],
+      "id": "99a7c3cc-0c71-4fcb-a923-c17e87487244",
+      "name": "State Switch"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1784194858,
+          "mode": "list",
+          "cachedResultName": "Portfolio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=1784194858"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -384
+      ],
+      "id": "7611a050-8c98-4c12-911a-5c5e980ee510",
+      "name": "Portfolio Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// get the current user chat_id\nconst chatId = $('extract').first().json.chat_id;\n\n// filter rows for this user and collect stocks\nconst stocks = items\n  .filter(item => item.json.chat_id == chatId && item.json.stock)\n  .map(item => item.json.stock);\n\n// return all stocks for that chat_id\nreturn [{\n  json: {\n    chat_id: chatId,\n    stocks: stocks\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        -864
+      ],
+      "id": "56839330-6dcb-4ae4-a9ae-9ed1e17b573b",
+      "name": "List of stocks"
+    },
+    {
+      "parameters": {
+        "jsCode": "// get all rows from Google Sheets\nconst items = $input.all();\n\n// stock entered by user\nconst newStock = $('extract').first().json.text.trim().toLowerCase();\n\n// current user\nconst chatId = $('extract').first().json.chat_id;\n\n// get existing stocks array\nconst existingStocks = $input.first().json.stocks || [];\n\n// convert all existing stocks to lowercase\nconst normalizedStocks = existingStocks.map(stock => stock.toLowerCase());\n\n// check if the new stock already exists\nconst exists = normalizedStocks.includes(newStock);\n\nif (exists) {\n  return [{\n    json: {\n      allowAdd: false,\n      chat_id: chatId,\n      message: `⚠️ ${newStock.toUpperCase()} is already in your portfolio.`\n    }\n  }];\n}\n\n// allow stock to be added\nreturn [{\n  json: {\n    allowAdd: true,\n    chat_id: chatId,\n    stock: newStock.toUpperCase()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        -736
+      ],
+      "id": "ca46f74c-1513-4a27-b7b9-18afc1d1ff17",
+      "name": "New stock to check"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('extract').item.json.chat_id }}",
+        "text": "=The stock {{ $('New stock to check').item.json.stock }} is already present in your portfolio ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2640,
+        -672
+      ],
+      "id": "0ac4fe77-4176-46b8-bd6b-1fc4d3a21dd4",
+      "name": "Reply",
+      "webhookId": "e37877b7-9cf4-4874-a79d-42d0f3afc3fe",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('extract').item.json.chat_id }}",
+        "text": "={{ $('extract').item.json.text }} has been added to portfolio.\n\nYou would get the updates soon.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2768,
+        -944
+      ],
+      "id": "bc1100f8-e0be-4b1a-9d8b-2aff60274bf4",
+      "name": "Stock added reply",
+      "webhookId": "c30e7abf-da7a-4108-b0b4-f1b5c8a58a93",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// get the current user chat_id\nconst chatId = $('extract').first().json.chat_id;\n\n// filter rows for this user and collect stocks\nconst stocks = items\n  .filter(item => item.json.chat_id == chatId && item.json.stock)\n  .map(item => item.json.stock);\n\n// return all stocks for that chat_id\nreturn [{\n  json: {\n    chat_id: chatId,\n    stocks: stocks\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        -384
+      ],
+      "id": "f696e768-2e6f-448f-aa38-ad535bb96c26",
+      "name": "List of Stocks"
+    },
+    {
+      "parameters": {
+        "jsCode": "// rows from Google Sheets (used to get row_number)\nconst items = $items(\"Get row(s) in sheet3\");\n\n// stock entered by user\nconst stockToRemove = $('extract').first().json.text.trim().toLowerCase();\n\n// current user\nconst chatId = $('extract').first().json.chat_id;\n\n// existing stocks array\nconst existingStocks = $input.first().json.stocks || [];\n\n// convert all stocks to lowercase\nconst normalizedStocks = existingStocks.map(s => s.toLowerCase());\n\n// check if stock exists\nconst exists = normalizedStocks.includes(stockToRemove);\n\n// find row in Google Sheet\nconst match = items.find(item =>\n  item.json.chat_id == chatId &&\n  item.json.stock &&\n  item.json.stock.toLowerCase() === stockToRemove\n);\n\n// if stock not found\nif (!exists || !match) {\n  return [{\n    json: {\n      found: false,\n      chat_id: chatId,\n      message: `⚠️ ${stockToRemove.toUpperCase()} is not in your portfolio.`\n    }\n  }];\n}\n\n// if stock found\nreturn [{\n  json: {\n    found: true,\n    chat_id: chatId,\n    stock: stockToRemove.toUpperCase(),\n    row_number: match.json.row_number,\n    message: `✅ ${stockToRemove.toUpperCase()} found in your portfolio. Removing it now.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        -528
+      ],
+      "id": "34e65e5c-c722-4321-85d6-a9e000e4bc56",
+      "name": "Row of stock"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1784194858,
+          "mode": "list",
+          "cachedResultName": "Portfolio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=1784194858"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2608,
+        -416
+      ],
+      "id": "5034585f-e44c-4db5-b07b-78fbe967edeb",
+      "name": "Delete stock",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// chat_id of the user asking for the portfolio\nconst chatId = $('extract').first().json.chat_id;\n\n// filter only rows belonging to this user\nconst stocks = items\n  .filter(item => item.json.chat_id == chatId && item.json.stock)\n  .map(item => item.json.stock);\n\n// if no stocks exist\nif (stocks.length === 0) {\n  return [{\n    json: {\n      chat_id: chatId,\n      message: \"📊 Your portfolio is currently empty.\"\n    }\n  }];\n}\n\n// return the portfolio message\nreturn [{\n  json: {\n    chat_id: chatId,\n    message: \"📊 Your Portfolio:\\n\\n• \" + stocks.join(\"\\n• \")\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        400
+      ],
+      "id": "5d2bfaa6-60f3-4450-ad61-026873c33b46",
+      "name": "List_Stock"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('extract').item.json.chat_id }}",
+        "text": "=Which stock do you want to track?\n\n[ps: type the name of the stock or domains you are interested in]",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        -192
+      ],
+      "id": "be074431-600f-4b4a-abba-7ec442102e52",
+      "name": "Send add reply",
+      "webhookId": "626a97ca-0a85-4e5d-a3ec-4bbbee36b84c",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('extract').item.json.chat_id }}",
+            "state": "=awaiting_add_stock"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        -512
+      ],
+      "id": "9cbc6c8e-28ef-4261-9eb5-fc129866ee5a",
+      "name": "add awaiting",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('extract').item.json.chat_id }}",
+        "text": "=Which stock do you want to remove ? \n[please make sure the one you are entering is already present in your portfolio or searches in Buziee]",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        -144
+      ],
+      "id": "e863b57a-525b-4155-acba-9be8e4ca8c02",
+      "name": "Send remove reply",
+      "webhookId": "31f0854e-8cf2-4cf7-af70-6093816dfb3c",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('extract').item.json.chat_id }}",
+            "state": "=awaiting_remove_stock"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1104,
+        -368
+      ],
+      "id": "f2c5408d-1eb8-49fe-bb96-fad711f1e620",
+      "name": "remove awaiting",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=Classify the user message into one of these intents:\n\nADD_STOCK\nREMOVE_STOCK\nSTOCK_NAME\nGREETING\nPORTFOLIO\n\nUser message:\n{{ $json.text }}\n\nReturn JSON\n\n{\n \"intent\": \"\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        320
+      ],
+      "id": "fca0f1cf-811c-4967-9a93-52e24238e565",
+      "name": "Openai chatbot",
+      "credentials": {
+        "openAiApi": {
+          "id": "jnHan6ms9Xc7OOj0",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "04db2b67-4fc2-4810-b012-228f1535e0f8",
+              "leftValue": "={{ $json.stocks_length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        -672
+      ],
+      "id": "1d4ddb1f-3884-48c5-8fb2-09529cf75836",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// get all rows from the Portfolio Sheet node\nconst items = $items(\"Portfolio Sheet\");\n\n// current user chat_id\nconst chatId = $('extract').first().json.chat_id;\n\n// get all stocks for this user\nconst stocks = items\n  .filter(item => item.json.chat_id == chatId && item.json.stock)\n  .map(item => item.json.stock);\n\n// calculate length\nconst stockLength = stocks.length;\n\nreturn [{\n  json: {\n    chat_id: chatId,\n    stocks: stocks,\n    stocks_length: stockLength\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        -512
+      ],
+      "id": "3f5d329a-25e7-48bd-aa12-0b8ac966df9f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "63274570-f64d-4848-a752-f626896eaaf8",
+              "leftValue": "={{ $json.found }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2240,
+        16
+      ],
+      "id": "a0a22b50-7842-4fc4-a862-b7218683669e",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $('Row of stock').item.json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        -176
+      ],
+      "id": "37556ffa-f5a0-448f-b22d-d0df1a0e4165",
+      "name": "Send a text message",
+      "webhookId": "8577f954-c1b1-407e-b806-0bf637695af2",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Row of stock').item.json.chat_id }}",
+        "text": "=The stock  {{ $('Row of stock').item.json.message }} \n\nIt has been removed from the portfolio\n\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2880,
+        144
+      ],
+      "id": "39e79c21-5a77-4869-ab79-56bb9327f8cc",
+      "name": "Send a text message1",
+      "webhookId": "f5277677-9f2f-4777-bd93-4a5d98178e73",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oq6QJ7xLpKd3AFnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        688
+      ],
+      "id": "8f9dfce6-982e-49c1-8c3c-401288f61b13",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA",
+          "mode": "list",
+          "cachedResultName": "Buzee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1784194858,
+          "mode": "list",
+          "cachedResultName": "Portfolio",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dn2rakTrBv2tFjgaXIjXauvQ6c-XVuZskN8oONku6YA/edit#gid=1784194858"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1280,
+        688
+      ],
+      "id": "fd47eba7-2292-4ed4-b419-c78e5ae3103b",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aMVt0sULszwVEmGN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1584,
+        1200
+      ],
+      "id": "2551e59b-3695-4abb-84dd-c7d1778f2390",
+      "name": "RSS Read2"
+    },
+    {
+      "parameters": {
+        "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1728,
+        944
+      ],
+      "id": "1243ae1c-cd71-42e1-b66b-daa3f135865c",
+      "name": "RSS - Economic Times Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://www.livemint.com/rss/markets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1984,
+        1120
+      ],
+      "id": "04f039c1-3383-4e28-a3d6-d7a8ffdac311",
+      "name": "RSS - LiveMint Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.feedburner.com/ndtvprofit-latest",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1888,
+        1904
+      ],
+      "id": "54022d23-f91b-4977-8457-cffcb4222a4d",
+      "name": "RSS - NDTV Profit"
+    },
+    {
+      "parameters": {
+        "url": "https://www.investing.com/rss/news_25.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1904,
+        2144
+      ],
+      "id": "9a3ef5be-1ec1-47f2-b9cb-cd643d0d3a6f",
+      "name": "RSS - Investing India Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://www.thehindubusinessline.com/markets/?service=rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        2144,
+        2192
+      ],
+      "id": "3c1164ef-b23f-4705-bca0-aa8bed13389d",
+      "name": "RSS - BusinessLine Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.marketwatch.com/marketwatch/topstories/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        1808
+      ],
+      "id": "204c65f6-9231-4060-b586-09e60caed54c",
+      "name": "RSS - MarketWatch Top Stories"
+    },
+    {
+      "parameters": {
+        "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        1600
+      ],
+      "id": "a5f75d25-d96c-46cf-b889-b0ea7ab1de9a",
+      "name": "RSS - CNBC Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://finance.yahoo.com/rss/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        1472
+      ],
+      "id": "44ffe392-e3b2-4c94-890d-7e82ab1dacf4",
+      "name": "RSS - Yahoo Finance"
+    },
+    {
+      "parameters": {
+        "url": "https://www.ft.com/markets?format=rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        1152
+      ],
+      "id": "a8e5d7bc-f645-43c3-aa88-a439627103c4",
+      "name": "RSS - Financial Times Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        1312
+      ],
+      "id": "26ef9425-51af-42f7-9135-052d5083d7a3",
+      "name": "RSS - Wall Street Journal Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://www.theguardian.com/business/rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        976
+      ],
+      "id": "9a5e1b18-04b9-4e24-a92d-a863c7230900",
+      "name": "RSS - Guardian Business"
+    },
+    {
+      "parameters": {
+        "url": "https://seekingalpha.com/market_currents.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        1984
+      ],
+      "id": "bd699de8-2bd9-46d8-9187-b12063711014",
+      "name": "RSS - Seeking Alpha Market News"
+    },
+    {
+      "parameters": {
+        "numberInputs": 10
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        1216
+      ],
+      "id": "48ab0faf-7002-4ee1-a0f5-102096e923ec",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "numberInputs": 10
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2592,
+        1248
+      ],
+      "id": "2d6d7e61-6365-4b3c-813d-b8f60aab3dd7",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1632,
+        720
+      ],
+      "id": "78901254-46f4-4dc4-9fcd-62923055dca0",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2032,
+        688
+      ],
+      "id": "d5201a6d-82e8-4ef5-9671-bfda80986d37",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are a financial analyst.\n\nDetermine if the news could impact the stock {{ $('Code in JavaScript1').item.json.stocks }}.\n\nConsider these factors:\n\n1 Supply chain\n2 Raw materials\n3 Regulations\n4 Competition\n5 Demand\n6 Production\n7 Geopolitics\n8 Technology\n\nNews:\n\nTitle:\n{{ $json.title }}\n\nContent:\n{{ $json.contentSnippet }}\n\nReturn JSON:\n\n{\n \"impact\": \"positive | negative | neutral\",\n \"impact_score\": 0-100,\n \"reason\": \"\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2560,
+        720
+      ],
+      "id": "258f01c9-1cac-4e39-b6f0-1271ba430cf6",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "bLMCmaUEscyYL4xm",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.tv9bangla.com/feed",
+        "options": {
+          "ignoreSSL": false
+        }
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        1344
+      ],
+      "id": "3490d750-d023-4184-ac5b-c0ae1e9d903e",
+      "name": "RSS- TV9Bangla"
+    },
+    {
+      "parameters": {
+        "url": "https://www.thehindubusinessline.com/feeder/default.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        1424
+      ],
+      "id": "227097f3-6705-40f4-920a-b2aeebca682d",
+      "name": "RSS - Hindustan BusinessLine"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.marketwatch.com/marketwatch/topstories/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        1568
+      ],
+      "id": "47cb95c2-4499-49c3-ac54-3cf8d420e774",
+      "name": "RSS - MarketWatch"
+    },
+    {
+      "parameters": {
+        "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        1760
+      ],
+      "id": "28a17d40-9858-48da-8827-be2ec7b5a707",
+      "name": "RSS - CoinDesk Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://www.fxstreet.com/rss/news",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        2160
+      ],
+      "id": "c31802b7-d0ac-4e1f-8e65-d2b08a040076",
+      "name": "RSS - FXStreet Markets"
+    },
+    {
+      "parameters": {
+        "url": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        2160
+      ],
+      "id": "f0f5df0a-1e6b-4ff0-aa0f-f45eb5e76094",
+      "name": "RSS - Hindustan Times Business"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        192,
+        2256
+      ],
+      "id": "d5dbeeaa-900b-4160-bb26-23b04c5177ee",
+      "name": "RSS - BBC Business"
+    },
+    {
+      "parameters": {
+        "jsCode": "// get all rows from Google Sheets\nconst items = $input.all();\n\n// get the chat_id from the Telegram message (extract node)\nconst chatId = $input.first().json.chat_id;\n\n// filter rows for this chat_id and collect stocks\nconst stocks = items\n  .filter(item => item.json.chat_id == chatId && item.json.stock)\n  .map(item => item.json.stock);\n\n// return chat_id and stocks array\nreturn [{\n  json: {\n    chat_id: chatId,\n    stocks: stocks\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        624
+      ],
+      "id": "ba353a88-9296-42c5-81a0-b46f77a5c753",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2240,
+        688
+      ],
+      "id": "90281c34-435f-4952-a28f-ad60d864cc83",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are a financial analyst.\n\nDetermine if the news could impact the stock {{ $('Code in JavaScript1').item.json.stocks }}.\n\nConsider these factors:\n\n1 Supply chain\n2 Raw materials\n3 Regulations\n4 Competition\n5 Demand\n6 Production\n7 Geopolitics\n8 Technology\n\nNews:\n\nTitle:\n{{ $json.title }}\n\nContent:\n{{ $json.contentSnippet }}\n\nReturn JSON:\n\n{\n \"impact\": \"positive | negative | neutral\",\n \"impact_score\": 0-100,\n \"reason\": \"\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2560,
+        896
+      ],
+      "id": "8863a1a9-ebf2-4faf-9124-039892153134",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "bLMCmaUEscyYL4xm",
+          "name": "OpenAi account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send add reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send remove reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Users Extract",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "greeting",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Portfolio Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "intent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract": {
+      "main": [
+        [
+          {
+            "node": "Openai chatbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Stock added reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "List of Stocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Portfolio Extract": {
+      "main": [
+        [
+          {
+            "node": "List_Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Users Extract": {
+      "main": [
+        [
+          {
+            "node": "State Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "State Code": {
+      "main": [
+        [
+          {
+            "node": "State Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "State Switch": {
+      "main": [
+        [
+          {
+            "node": "Portfolio Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Portfolio Sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List of stocks": {
+      "main": [
+        [
+          {
+            "node": "New stock to check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New stock to check": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List of Stocks": {
+      "main": [
+        [
+          {
+            "node": "Row of stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Row of stock": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List_Stock": {
+      "main": [
+        [
+          {
+            "node": "Portfolio Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send add reply": {
+      "main": [
+        [
+          {
+            "node": "add awaiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send remove reply": {
+      "main": [
+        [
+          {
+            "node": "remove awaiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Openai chatbot": {
+      "main": [
+        [
+          {
+            "node": "intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "List of stocks",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Delete stock",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete stock": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Portfolio Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Guardian Business",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Financial Times Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Wall Street Journal Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Yahoo Finance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - CNBC Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Seeking Alpha Market News",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - MarketWatch Top Stories",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - FXStreet Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - BBC Business",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Hindustan Times Business",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Economic Times Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - LiveMint Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Hindustan BusinessLine",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - MarketWatch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - CoinDesk Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - NDTV Profit",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Investing India Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - BusinessLine Markets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS- TV9Bangla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "RSS - Guardian Business": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS - Financial Times Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "RSS - Wall Street Journal Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "RSS - Yahoo Finance": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "RSS - CNBC Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "RSS - MarketWatch Top Stories": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "RSS - Seeking Alpha Market News": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "RSS - Economic Times Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS - LiveMint Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "RSS - NDTV Profit": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "RSS - Investing India Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 8
+          }
+        ]
+      ]
+    },
+    "RSS - BusinessLine Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 9
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS- TV9Bangla": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "RSS - Hindustan BusinessLine": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "RSS - MarketWatch": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "RSS - CoinDesk Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "RSS - FXStreet Markets": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "RSS - Hindustan Times Business": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 9
+          }
+        ]
+      ]
+    },
+    "RSS - BBC Business": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 8
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c8c05b76-4bf7-4d90-ac40-f06fd33ba215",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "be790b8c36fbf2e4d122a96f86ee3aa5dd732706bc49cfe0e9636661cc6c5223"
+  },
+  "id": "Gro1tSIdJYJZqdHo",
+  "tags": []
+}
